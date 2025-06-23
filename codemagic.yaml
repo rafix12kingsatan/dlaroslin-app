@@ -1,0 +1,33 @@
+workflows:
+  ios-capacitor-build:
+    name: iOS Build (Capacitor)
+    instance_type: mac_mini_m1
+    environment:
+      vars:
+        APP_ID: "io.ionic.starter"
+      node: 18.16.0
+      xcode: latest
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+
+      - name: Build web assets
+        script: |
+          npm run build
+
+      - name: Sync Capacitor
+        script: |
+          npx cap sync ios
+
+    artifacts:
+      - ios/Runner.xcarchive
+      - build/**/*
+      - dist/**/*
+    publishing:
+      email:
+        recipients:
+          - rafix1278@gmail.com
+        notify:
+          success: true
+          failure: true
