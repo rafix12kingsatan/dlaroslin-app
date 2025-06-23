@@ -1,0 +1,59 @@
+.splash {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.splash-logo {
+  width: 180px;
+  margin-bottom: 16px;
+}
+
+/* Domain under logo */
+.splash-domain {
+  font-size: 24px;
+  font-weight: 700;
+  color: #005BAC; /* jasny niebieski */
+  margin: 0 0 24px;
+}
+
+/* Progress bar */
+.progress {
+  width: 80%;
+  height: 4px;
+  background: #eee;
+  border-radius: 4px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.progress .bar {
+  width: 0;
+  height: 100%;
+  background: #6AA84F;
+  animation: splash-load 2s linear infinite;
+}
+
+/* Slogan lines */
+.splash-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #005BAC; /* jasny niebieski */
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* keyframes */
+@keyframes splash-load {
+  0% { width: 0; }
+  100% { width: 100%; }
+}
