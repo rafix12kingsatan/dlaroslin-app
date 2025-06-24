@@ -28,11 +28,6 @@ workflows:
                      -allowProvisioningUpdates \
                      -destination generic/platform=iOS \
                      clean archive
-    xcode_project:
-      project: "ios/App/App.xcodeproj"
-      scheme: "App"
-      code_signing:
-        bundle_identifier: "pl.dlaroslin.app"
     artifacts:
       - build/ios/ipa/*.ipa
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
