@@ -1,0 +1,20 @@
+ios-capacitor-build:
+  name: iOS Build (Capacitor)
+  instance_type: mac_mini_m2
+  environment:
+    vars:
+      NODE_OPTIONS: "--max_old_space_size=4096"
+    node: lts
+    xcode: latest
+    ios_signing:
+      bundle_identifier: 'pl.dlaroslin.app'
+      certificates:
+        - name: 'rafal'
+          type: 'production'  # Typ certyfikatu, np. 'production' lub 'development'
+          group: 'Hurtownia Rolno-Ogrodnicza InagrI'
+          source: 'Codemagic'  # Źródło certyfikatu, zwykle 'Codemagic'
+      provisioning_profiles:
+        - name: 'rafal'
+          type: 'app_store'  # Typ profilu, np. 'app_store'
+          group: 'Hurtownia Rolno-Ogrodnicza InagrI'
+          source: 'Codemagic'  # Źródło profilu, zwykle 'Codemagic'
