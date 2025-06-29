@@ -5,9 +5,9 @@ workflows:
     environment:
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
-        CM_CERTIFICATE: "rafal.p12"
-        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
-        CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
+        CM_CERTIFICATE: "rafal.p12"              # Plik certyfikatu (masz w repo)
+        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"    # Hasło do certyfikatu (twoje)
+        CM_PROVISIONING_PROFILE: "rafal.mobileprovision" # Plik provisioning (masz)
       node: lts
       xcode: latest
     scripts:
@@ -20,13 +20,14 @@ workflows:
       - name: Sync Capacitor
         script: |
           npx cap sync ios
-      - name: Build iOS project
+      - name: Prepare iOS build
         script: |
-          cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -archivePath $HOME/Library/Developer/Xcode/Archives/App.xcarchive archive
-      - name: Export .ipa
-        script: |
-          xcodebuild -exportArchive -archivePath $HOME/Library/Developer/Xcode/Archives/App.xcarchive -exportOptionsPlist exportOptions.plist -exportPath $CM_EXPORT_DIR
+          cd ios
+          pod install
     artifacts:
-      - $CM_EXPORT_DIR/*.ipa
+      - build/ios/ipa/*.ipa
+    ios_signing:
+      distribution_type: app_store
+      bundle_identifier: "pl.dlaroslin.app"
 
+      
