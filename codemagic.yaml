@@ -10,8 +10,5 @@ workflows:
         CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
       node: lts
       xcode: latest
-    ios_signing:
-      distribution_type: app_store
-      bundle_identifier: "pl.dlaroslin.app"
     artifacts:
       - build/ios/ipa/*.ipa
