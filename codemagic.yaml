@@ -1,0 +1,35 @@
+workflows:
+  ios-capacitor-build:
+    name: iOS Build (Capacitor)
+    instance_type: mac_mini_m2
+    environment:
+      vars:
+        NODE_OPTIONS: \"--max_old_space_size=4096\"
+      node: lts
+      xcode: latest
+      ios_signing:
+        certificates:
+          - certificate_name: dlaRoslin_cert
+            certificate_password: dlakorla89
+        provisioning_profiles:
+          - profile: dlaRoslin_profile
+            certificate: dlaRoslin_cert
+            distribution_type: app_store
+            bundle_identifier: pl.dlaroslin.app
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+      - name: Build web assets
+        script: |
+          export CI=false
+          npm run build
+      - name: Sync Capacitor
+        script: |
+          npx cap sync ios
+      - name: Fix Embed Pods Frameworks script
+        script: |
+          sed -i '' '/\[CP\] Embed Pods Frameworks/,/runOnlyForDeploymentPostprocessing/s/runOnlyForDeploymentPostprocessing = [0-9];/runOnlyForDeploymentPostprocessing = 0;/g' ios/App.xcodeproj/project.pbxproj
+      - name: Build iOS
+        script: |
+          npx cap open ios
