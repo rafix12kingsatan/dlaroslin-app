@@ -1,0 +1,36 @@
+workflows:
+  ios-capacitor-build:
+    name: iOS Build (Capacitor)
+    instance_type: mac_mini_m2
+    environment:
+      vars:
+        NODE_OPTIONS: "--max_old_space_size=4096"
+      node: lts
+      xcode: latest
+      ios_signing:
+        certificates:
+          - key_id: rafal
+            certificate_password: dlakorla89
+        provisioning_profiles:
+          - profile: rafal
+            certificate: rafal
+            distribution_type: app_store
+            bundle_identifier: pl.dlaroslin.app
+            target: App
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+      - name: Build web assets
+        script: |
+          export CI=false
+          npm run build
+      - name: Sync Capacitor
+        script: |
+          npx cap sync ios
+      - name: Set up code signing settings
+        script: |
+          xcode-project use-profiles
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa --workspace ios/App/App.xcworkspace --scheme App
