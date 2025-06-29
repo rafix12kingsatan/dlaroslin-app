@@ -5,7 +5,6 @@ import React, {
   useRef,
 } from 'react';
 import {
-  FaBars,
   FaTimes,
 } from 'react-icons/fa';
 import './App.css';
