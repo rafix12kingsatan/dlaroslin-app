@@ -5,8 +5,13 @@ workflows:
     environment:
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
-        CM_CERTIFICATE: "rafal.p12"              # Nazwa pliku certyfikatu
-        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"    # Hasło do certyfikatu
-        CM_PROVISIONING_PROFILE: "rafal.mobileprovision"  # Nazwa pliku profilu
+        CM_CERTIFICATE: "rafal.p12"
+        CM_CERTIFICATE_PASSWORD: "QH2WCnyE"
+        CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
       node: lts
       xcode: latest
+    ios_signing:
+      distribution_type: app_store
+      bundle_identifier: "pl.dlaroslin.app"
+    artifacts:
+      - build/ios/ipa/*.ipa
