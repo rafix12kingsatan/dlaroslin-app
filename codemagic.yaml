@@ -1,0 +1,14 @@
+workflows:
+  ios-capacitor-build:
+    name: iOS Build (Capacitor)
+    instance_type: mac_mini_m2
+    environment:
+      vars:
+        NODE_OPTIONS: "--max_old_space_size=4096"
+        CM_CERTIFICATE: "rafal.p12"  # Nazwa pliku certyfikatu
+        CM_CERTIFICATE_PASSWORD: "QH2WCnyE"  # Hasło do certyfikatu
+        CM_PROVISIONING_PROFILE: "rafal.mobileprovision"  # Nazwa pliku profilu
+      node: lts
+      xcode: latest
+      ios_signing:
+        bundle_identifier: 'pl.dlaroslin.app'
