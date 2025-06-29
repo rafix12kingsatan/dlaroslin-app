@@ -5,9 +5,9 @@ workflows:
     environment:
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
-        CM_CERTIFICATE: "rafal.p12"              # Plik certyfikatu (masz w repo)
-        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"    # Hasło do certyfikatu (twoje)
-        CM_PROVISIONING_PROFILE: "rafal.mobileprovision" # Plik provisioning (masz)
+        CM_CERTIFICATE: "rafal.p12"
+        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
+        CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
       node: lts
       xcode: latest
     scripts:
@@ -26,8 +26,6 @@ workflows:
           pod install
     artifacts:
       - build/ios/ipa/*.ipa
-    ios_signing:
-      distribution_type: app_store
-      bundle_identifier: "pl.dlaroslin.app"
 
+   
       
