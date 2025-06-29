@@ -6,9 +6,27 @@ workflows:
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
         CM_CERTIFICATE: "rafal.p12"
-        CM_CERTIFICATE_PASSWORD: "QH2WCnyE"
+        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
         CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
       node: lts
       xcode: latest
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+      - name: Build web
+        script: |
+          npm run build
+      - name: Sync Capacitor
+        script: |
+          npx cap sync ios
+      - name: Build iOS project
+        script: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -archivePath $HOME/Library/Developer/Xcode/Archives/App.xcarchive archive
+      - name: Export .ipa
+        script: |
+          xcodebuild -exportArchive -archivePath $HOME/Library/Developer/Xcode/Archives/App.xcarchive -exportOptionsPlist exportOptions.plist -exportPath $CM_EXPORT_DIR
     artifacts:
-      - build/ios/ipa/*.ipa
+      - $CM_EXPORT_DIR/*.ipa
+
