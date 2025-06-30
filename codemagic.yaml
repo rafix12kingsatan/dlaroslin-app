@@ -4,9 +4,12 @@ workflows:
     instance_type: mac_mini_m2
     environment:
       ios_signing:
-        certificate: rafal_p12
-        certificate_password: QH2WCnyE
-        provisioning_profile: rafal_mobileprovision
+        provisioning_profiles:
+          - name: rafal_mobileprovision
+            type: development
+            bundle_identifier:pl.dlaroslin.app
+            certificate: rafal_p12
+            certificate_password: QH2WCnyE
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
       node: lts
