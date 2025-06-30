@@ -3,6 +3,13 @@ workflows:
     name: iOS Build (Capacitor)
     instance_type: mac_mini_m2
     environment:
+      ios_signing:
+        certificates:
+          - certificate: rafal.p12
+            password: QH2WCnyE
+        provisioning_profiles:
+          - profile: rafal.mobileprovision
+            certificate: rafal.p12
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
       node: lts
