@@ -50,6 +50,4 @@ workflows:
             -exportPath build/ios/ipa \
             -exportOptionsPlist exportOptions.plist
     artifacts:
-      - path: build/ios/ipa/*.ipa
-        name: "iOS_App"
-        description: "Pobierz aplikację iOS (.ipa)"
+      - build/ios/ipa/*.ipa: { name: "iOS_App", description: "Pobierz aplikację iOS (.ipa)" }
