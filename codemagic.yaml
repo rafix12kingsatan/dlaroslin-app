@@ -24,5 +24,10 @@ workflows:
         script: |
           cd ios/App
           pod install
+      - name: Build iOS app
+        script: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos -archivePath $CM_BUILD_DIR/App.xcarchive archive
+          xcodebuild -exportArchive -archivePath $CM_BUILD_DIR/App.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $CM_BUILD_DIR
     artifacts:
-      - ios/App/build/Build/Products/Release-iphoneos/*.ipa
+      - $CM_BUILD_DIR/*.ipa
