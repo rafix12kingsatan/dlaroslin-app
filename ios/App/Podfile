@@ -1,6 +1,6 @@
 platform :ios, '13.0'
 
-target 'App' do
+target 'dlaroslin-app' do
   use_frameworks!
 
   pod 'Capacitor'
