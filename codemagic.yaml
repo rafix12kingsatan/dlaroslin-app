@@ -11,9 +11,6 @@ workflows:
       node: lts
       xcode: latest
     scripts:
-      - name: Update CocoaPods # (opcjonalnie, polecane!)
-        script: |
-          sudo gem install cocoapods -v 1.14.3
       - name: Install dependencies
         script: |
           npm install
