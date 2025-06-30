@@ -5,22 +5,24 @@ workflows:
     environment:
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
+        CM_CERTIFICATE: "rafal.p12"
+        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
+        CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
       node: lts
       xcode: latest
-      cocoapods: default
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.dlaroslin.app  # <<< WPISZ SWÓJ PRAWIDŁOWY BUNDLE ID
     scripts:
       - name: Install dependencies
-        script: npm install
+        script: |
+          npm install
       - name: Build web
-        script: npm run build
+        script: |
+          npm run build
       - name: Sync Capacitor
-        script: npx cap sync ios
+        script: |
+          npx cap sync ios
+      - name: Install CocoaPods
+        script: |
+          cd ios/App
+          pod install
     artifacts:
       - build/ios/ipa/*.ipa
-    publishing:
-      email:
-        recipients:
-          - rafix1278@gmail.com
