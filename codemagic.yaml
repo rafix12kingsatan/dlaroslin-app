@@ -24,5 +24,32 @@ workflows:
         script: |
           cd ios/App
           pod install
+      - name: Build iOS App
+        script: |
+          cd ios/App
+          # Tworzenie opcji eksportu
+          echo '<?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>development</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+          </dict>
+          </plist>' > exportOptions.plist
+          # Archiwizacja projektu
+          xcodebuild archive \
+            -scheme App \
+            -archivePath build/App.xcarchive \
+            -sdk iphoneos \
+            -configuration Release
+          # Eksport do .ipa
+          xcodebuild exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath build/ios/ipa \
+            -exportOptionsPlist exportOptions.plist
     artifacts:
-      - build/ios/ipa/*.ipa
+      - path: build/ios/ipa/*.ipa
+        name: "iOS_App"
+        description: "Pobierz aplikację iOS (.ipa)"
