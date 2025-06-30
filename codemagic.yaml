@@ -23,7 +23,7 @@ workflows:
           rm -rf Pods
           rm -f Podfile.lock
           pod cache clean --all
-      - name: Clean Podfile and Create New Podfile
+      - name: Clean Podfile and Create New Podfile in ios/
         script: |
           # Usuwanie starego Podfile
           rm -f ios/Podfile
