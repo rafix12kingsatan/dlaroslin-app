@@ -3,14 +3,7 @@ platform :ios, '13.0'
 target 'App' do
   use_frameworks!
 
-  # Pods for App (Capacitor Core + Cordova Bridge)
   pod 'Capacitor'
   pod 'CapacitorCordova'
-
-  # Przykład integracji innych pods (odkomentuj, jeśli potrzebujesz)
-  # pod 'Firebase/Core'
-  # pod 'Firebase/Auth'
-  # pod 'Firebase/Firestore'
-  # pod 'GoogleMaps'
 
 end
