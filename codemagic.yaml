@@ -35,6 +35,8 @@ workflows:
         script: |
           cd ios
           pod install --repo-update
+          # Ustawienie ścieżki do projektu Xcode w Podfile
+          echo "project 'ios/App/App.xcodeproj'" > ios/Podfile
       - name: Sync Capacitor
         script: |
           npx cap sync ios
@@ -45,3 +47,4 @@ workflows:
           xcodebuild -exportArchive -archivePath $CM_BUILD_DIR/App.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $CM_BUILD_DIR
     artifacts:
       - $CM_BUILD_DIR/*.ipa
+
