@@ -10,9 +10,7 @@ workflows:
       cocoapods: default
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.dlaroslin.app  # <<< TU PODAJ SWÓJ FAKTYCZNY BUNDLE ID
-        export_options:
-          method: app-store
+        bundle_identifier: com.dlaroslin.app  # <<< WPISZ SWÓJ PRAWIDŁOWY BUNDLE ID
     scripts:
       - name: Install dependencies
         script: npm install
