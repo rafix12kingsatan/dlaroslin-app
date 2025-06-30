@@ -7,13 +7,6 @@ workflows:
         NODE_OPTIONS: "--max_old_space_size=4096"
       node: lts
       xcode: latest
-    ios_signing:
-      certificates:
-        - certificate: rafal.p12
-          certificate_password: "QH2wICnyE"
-      provisioning_profiles:
-        - profile: rafal.mobileprovision
-          certificate: rafal.p12
     scripts:
       - name: Install dependencies
         script: |
