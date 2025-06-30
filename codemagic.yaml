@@ -17,6 +17,17 @@ workflows:
       - name: Build web assets
         script: |
           npm run build
+      - name: Create Podfile
+        script: |
+          cd ios
+          echo "platform :ios, '13.0'" > Podfile
+          echo "" >> Podfile
+          echo "target 'App' do" >> Podfile
+          echo "  use_frameworks!" >> Podfile
+          echo "" >> Podfile
+          echo "  pod 'Capacitor'" >> Podfile
+          echo "  pod 'CapacitorCordova'" >> Podfile
+          echo "end" >> Podfile
       - name: Clean CocoaPods
         script: |
           cd ios
