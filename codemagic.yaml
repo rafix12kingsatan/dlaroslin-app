@@ -20,12 +20,13 @@ workflows:
       - name: Sync Capacitor
         script: |
           npx cap sync ios
-      - name: Clean Pods and Podfile.lock
+      - name: Clean CocoaPods
         script: |
           cd ios
-          rm -rf Pods Podfile.lock
+          rm -rf Pods
+          rm -f Podfile.lock
           pod cache clean --all
-      - name: Install CocoaPods and Pods
+      - name: Install CocoaPods
         script: |
           sudo gem install cocoapods
           cd ios
