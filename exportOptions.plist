@@ -11,7 +11,7 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>pl.dlaroslin.app</key>
-        <string>DlaRoslin_Distribution</string>
+        <string>rafal</string>
     </dict>
     <key>uploadBitcode</key>
     <false/>
