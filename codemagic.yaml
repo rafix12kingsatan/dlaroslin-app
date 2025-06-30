@@ -11,22 +11,28 @@ workflows:
       node: lts
       xcode: latest
     scripts:
-      - name: Install dependencies
+      - name: Install npm dependencies
         script: |
           npm install
-      - name: Build web
+      - name: Build web assets
         script: |
           npm run build
       - name: Sync Capacitor
         script: |
           npx cap sync ios
-      - name: Install CocoaPods
+      - name: Clean Pods and Podfile.lock
         script: |
-          cd ios/App
-          pod install
+          cd ios
+          rm -rf Pods Podfile.lock
+          pod cache clean --all
+      - name: Install CocoaPods and Pods
+        script: |
+          sudo gem install cocoapods
+          cd ios
+          pod install --repo-update
       - name: Build iOS app
         script: |
-          cd ios/App
+          cd ios
           xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos -archivePath $CM_BUILD_DIR/App.xcarchive archive DEVELOPMENT_TEAM=XHY8V5C8YG PROVISIONING_PROFILE_SPECIFIER=rafal
           xcodebuild -exportArchive -archivePath $CM_BUILD_DIR/App.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $CM_BUILD_DIR
     artifacts:
