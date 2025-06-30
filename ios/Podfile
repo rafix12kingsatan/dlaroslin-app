@@ -1,6 +1,7 @@
 platform :ios, '13.0'
 
-project 'App.xcodeproj'
+# Ścieżka do projektu
+project 'ios/App.xcodeproj'
 
 target 'App' do
   use_frameworks!
