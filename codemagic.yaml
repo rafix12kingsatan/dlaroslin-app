@@ -17,9 +17,6 @@ workflows:
       - name: Build web assets
         script: |
           npm run build
-      - name: Sync Capacitor
-        script: |
-          npx cap sync ios
       - name: Clean CocoaPods
         script: |
           cd ios
@@ -31,6 +28,9 @@ workflows:
           sudo gem install cocoapods
           cd ios
           pod install --repo-update
+      - name: Sync Capacitor
+        script: |
+          npx cap sync ios
       - name: Build iOS app
         script: |
           cd ios
