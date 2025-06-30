@@ -13,5 +13,13 @@
         <key>pl.dlaroslin.app</key>
         <string>rafal</string>
     </dict>
+    <key>uploadBitcode</key>
+    <false/>
+    <key>compileBitcode</key>
+    <true/>
+    <key>stripSwiftSymbols</key>
+    <true/>
+    <key>destination</key>
+    <string>export</string>
 </dict>
 </plist>
