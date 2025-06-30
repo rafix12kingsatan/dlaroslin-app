@@ -27,7 +27,7 @@ workflows:
       - name: Build iOS IPA
         script: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -archivePath build/App.xcarchive archive
+          xcodebuild -workspace App.xcworkspace -scheme App -archivePath build/App.xcarchive -destination 'generic/platform=iOS' archive
           xcodebuild -exportArchive -archivePath build/App.xcarchive -exportOptionsPlist exportOptions.plist -exportPath build/ios/ipa
     artifacts:
       - build/ios/ipa/*.ipa
