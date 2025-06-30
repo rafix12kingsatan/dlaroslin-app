@@ -17,27 +17,6 @@ workflows:
       - name: Build web assets
         script: |
           npm run build
-      - name: Clean CocoaPods
-        script: |
-          cd ios
-          rm -rf Pods
-          rm -f Podfile.lock
-          pod cache clean --all
-      - name: Clean Podfile and Create New Podfile in ios/
-        script: |
-          # Usuwanie starego Podfile
-          rm -f ios/Podfile
-          # Tworzenie nowego Podfile w katalogu ios/
-          echo "platform :ios, '13.0'" > ios/Podfile
-          echo "" >> ios/Podfile
-          echo "project 'App.xcodeproj'" >> ios/Podfile
-          echo "" >> ios/Podfile
-          echo "target 'App' do" >> ios/Podfile
-          echo "  use_frameworks!" >> ios/Podfile
-          echo "" >> ios/Podfile
-          echo "  pod 'Capacitor'" >> ios/Podfile
-          echo "  pod 'CapacitorCordova'" >> ios/Podfile
-          echo "end" >> ios/Podfile
       - name: Install CocoaPods
         script: |
           sudo gem install cocoapods
@@ -53,3 +32,6 @@ workflows:
           xcodebuild -exportArchive -archivePath $CM_BUILD_DIR/App.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $CM_BUILD_DIR
     artifacts:
       - $CM_BUILD_DIR/*.ipa
+
+       
+      
