@@ -11,6 +11,20 @@ workflows:
       node: lts
       xcode: latest
     scripts:
+      - name: Install Ruby 3.1.0
+        script: |
+          # Instalacja RVM (Ruby Version Manager)
+          \curl -sSL https://get.rvm.io | bash -s stable --ruby
+          
+          # Instalacja Ruby 3.1.0
+          rvm install 3.1.0
+          
+          # Ustawienie Ruby 3.1.0 jako domyślnej wersji
+          rvm use 3.1.0 --default
+          
+          # Zainstalowanie CocoaPods z odpowiednią wersją Ruby
+          gem install cocoapods
+          
       - name: Install npm dependencies
         script: |
           npm install
@@ -19,7 +33,6 @@ workflows:
           npm run build
       - name: Install CocoaPods
         script: |
-          sudo gem install cocoapods
           cd ios
           pod install --repo-update
       - name: Sync Capacitor
@@ -32,6 +45,3 @@ workflows:
           xcodebuild -exportArchive -archivePath $CM_BUILD_DIR/App.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $CM_BUILD_DIR
     artifacts:
       - $CM_BUILD_DIR/*.ipa
-
-       
-      
