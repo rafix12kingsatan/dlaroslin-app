@@ -1,0 +1,10 @@
+platform :ios, '13.0'
+
+project 'App.xcodeproj'
+
+target 'App' do
+  use_frameworks!
+
+  pod 'Capacitor'
+  pod 'CapacitorCordova'
+end
