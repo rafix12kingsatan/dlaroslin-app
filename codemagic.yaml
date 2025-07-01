@@ -1,84 +1,85 @@
 workflows:
-ios-capacitor-build:
-name: iOS Build (Capacitor)
-instance\_type: mac\_mini\_m2
-environment:
-vars:
-NODE\_OPTIONS: "--max\_old\_space\_size=4096"
-CM\_CERTIFICATE: "rafal.p12"
-CM\_CERTIFICATE\_PASSWORD: "QH2wICnyE"
-CM\_PROVISIONING\_PROFILE: "rafal.mobileprovision"
-DEVELOPMENT\_TEAM: "XHY8V5C8YG"
-node: lts
-xcode: latest
+  ios-capacitor-build:
+    name: iOS Build (Capacitor)
+    instance_type: mac_mini_m2
+    environment:
+      vars:
+        NODE_OPTIONS: "--max_old_space_size=4096"
+        CM_CERTIFICATE: "rafal.p12"
+        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
+        CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
+        # Nie zapomnij podstawić tutaj Twojego TEAM_ID:
+        DEVELOPMENT_TEAM: "XHY8V5C8YG"
+      node: lts
+      xcode: latest
+    scripts:
+      - name: Check node and npm versions
+        script: |
+          node -v
+          npm -v
 
-```
-scripts:
-  - name: Check node and npm versions
-    script: |
-      node -v
-      npm -v
+      - name: Install Ruby 3.1.0 & CocoaPods
+        script: |
+          \curl -sSL https://get.rvm.io | bash -s stable
+          source ~/.rvm/scripts/rvm
+          rvm install 3.1.0
+          rvm use 3.1.0 --default
+          gem install cocoapods
 
-  - name: Install Ruby 3.1.0 & CocoaPods
-    script: |
-      \curl -sSL https://get.rvm.io | bash -s stable
-      source ~/.rvm/scripts/rvm
-      rvm install 3.1.0
-      rvm use 3.1.0 --default
-      gem install cocoapods
+      - name: Install npm dependencies
+        script: |
+          npm install
 
-  - name: Install npm dependencies
-    script: |
-      npm install
+      - name: Install @capacitor/ios (latest)
+        script: |
+          npm install @capacitor/ios@latest --save
 
-  - name: Install @capacitor/ios (latest)
-    script: |
-      npm install @capacitor/ios@latest --save
+      - name: Build web assets
+        script: |
+          npm run build
 
-  - name: Build web assets
-    script: |
-      npm run build
+      # <-- 1) Instalacja podów musi się znaleźć przed xcodebuild
+      - name: Install CocoaPods
+        script: |
+          cd ios
+          pod install --repo-update
+          cd ..
 
-  - name: Install CocoaPods
-    script: |
-      cd ios
-      pod install --repo-update
-      cd ..
+      # <-- 2) (opcjonalnie) szybki debug, by sprawdzić, że App.xcworkspace i shared scheme istnieją
+      - name: Debug workspace contents
+        script: |
+          echo "Workspace files:"
+          ls ios
+          echo "Shared schemes:"
+          ls ios/App.xcworkspace/xcshareddata/xcschemes || echo "(brak folderu xcschemes!)"
 
-  - name: Debug workspace contents
-    script: |
-      echo "Workspace files:"
-      ls ios
-      echo "Shared schemes:"
-      ls ios/App.xcworkspace/xcshareddata/xcschemes || echo "(brak folderu xcschemes!)"
+      - name: Build iOS app
+        script: |
+          cd ios
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            archive \
+            DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
+            PROVISIONING_PROFILE_SPECIFIER=rafal
 
-  - name: Build iOS app
-    script: |
-      cd ios
-      xcodebuild \
-        -workspace App.xcworkspace \
-        -scheme App \
-        -configuration Release \
-        -sdk iphoneos \
-        -archivePath $CM_BUILD_DIR/App.xcarchive \
-        -allowProvisioningUpdates \
-        archive \
-        DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM
+          # Eksport .ipa
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath $CM_BUILD_DIR
 
-      xcodebuild -exportArchive \
-        -archivePath $CM_BUILD_DIR/App.xcarchive \
-        -exportOptionsPlist ExportOptions.plist \
-        -exportPath $CM_BUILD_DIR
+    artifacts:
+      - $CM_BUILD_DIR/*.ipa
+      - /tmp/xcodebuild_logs/*.log
 
-artifacts:
-  - $CM_BUILD_DIR/*.ipa
-  - /tmp/xcodebuild_logs/*.log
-
-publishing:
-  email:
-    recipients:
-      - "rafix1278@gmail.com"
-    notify:
-      success: true
-      failure: true
-```
+    publishing:
+      email:
+        recipients:
+          - "rafix1278@gmail.com"
+        notify:
+          success: true
+          failure: true
