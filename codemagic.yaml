@@ -12,14 +12,13 @@ workflows:
       xcode: latest
     scripts:
       - name: Install Ruby 3.1.0 & CocoaPods
-  script: |
-    # Install RVM (Ruby Version Manager)
-    \curl -sSL https://get.rvm.io | bash -s stable
-    source ~/.rvm/scripts/rvm
-    rvm install 3.1.0
-    rvm use 3.1.0 --default
-    ruby -v
-    gem install cocoapods
+        script: |
+          \curl -sSL https://get.rvm.io | bash -s stable
+          source ~/.rvm/scripts/rvm
+          rvm install 3.1.0
+          rvm use 3.1.0 --default
+          ruby -v
+          gem install cocoapods
       - name: Install npm dependencies
         script: |
           npm install
@@ -48,3 +47,5 @@ workflows:
         notify:
           success: true
           failure: true
+
+    
