@@ -34,23 +34,40 @@ workflows:
 
       - name: Setup code signing
         script: |
-          echo "🔍 Zawartość katalogu roboczego:"
-          ls -1
+          echo "🔍 Zawartość root katalogu i kilku podkatalogów:"
+          ls -R1 .
 
-          echo "🔑 Importowanie wszystkich certyfikatów (*.p12):"
+          # 1) Jeśli nie masz gotowego rafal.p12, ale masz certificate.pem i mykey.key, to je połącz:
+          if [ ! -f rafal.p12 ] && [ -f certificate.pem ] && [ -f mykey.key ]; then
+            echo "🔧 Tworzę rafal.p12 z .pem + .key"
+            openssl pkcs12 -export \
+              -inkey mykey.key \
+              -in certificate.pem \
+              -certfile distribution.cer \
+              -out rafal.p12 \
+              -passout pass:"$CM_CERTIFICATE_PASSWORD"
+          fi
+
+          # 2) Importuj wszystkie pliki .p12
+          echo "🔑 Importowanie certyfikatów (*.p12):"
           for cert in *.p12; do
-            echo " → import $cert"
-            security import "$cert" \
-              -P "$CM_CERTIFICATE_PASSWORD" \
-              -T /usr/bin/codesign
+            [ -f "$cert" ] && echo " → import $cert" && \
+              security import "$cert" \
+                -P "$CM_CERTIFICATE_PASSWORD" \
+                -T /usr/bin/codesign
           done
 
-          echo "📦 Instalowanie wszystkich provisioning profiles (*.mobileprovision):"
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          for profile in *.mobileprovision; do
-            echo " → copy $profile"
-            cp "$profile" ~/Library/MobileDevice/Provisioning\ Profiles/
+          # 3) Skopiuj wszystkie provisioning profiles z całego drzewa
+          echo "📦 Szukam i kopiuję provisioning profiles:"
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          find . -type f -name "*.mobileprovision" | while read p; do
+            echo " → copy $p"
+            cp "$p" "$HOME/Library/MobileDevice/Provisioning Profiles/"
           done
+
+          # 4) Sprawdź finalnie katalog docelowy
+          echo "✅ Finalne provisioning profiles:"
+          ls -1 "$HOME/Library/MobileDevice/Provisioning Profiles/"
 
       - name: Build & Archive
         script: |
@@ -82,10 +99,3 @@ workflows:
         notify:
           success: true
           failure: true
-
-        
-
-     
-   
-
-       
