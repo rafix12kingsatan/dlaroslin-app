@@ -2,6 +2,15 @@ platform :ios, '14.0'
 use_frameworks!
 
 target 'App' do
-  pod 'Capacitor',       :path => '../node_modules/@capacitor/ios'
+  pod 'Capacitor', :path => '../node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../node_modules/@capacitor/ios'
+end
+
+# ↓↓↓ Ten blok wyłącza code signing dla wszystkich pods ↓↓↓
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+    end
+  end
 end
