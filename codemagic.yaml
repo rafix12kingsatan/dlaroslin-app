@@ -28,6 +28,10 @@ workflows:
       - name: Sync Capacitor
         script: |
           npx cap sync ios
+      - name: Show Xcode targets
+        script: |
+          cd ios
+          xcodebuild -list
       - name: Install CocoaPods
         script: |
           cd ios
