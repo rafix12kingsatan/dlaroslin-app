@@ -11,11 +11,6 @@ workflows:
       node: lts
       xcode: latest
     scripts:
-      - name: Show Xcode targets
-        script: |
-          cd ios
-          xcodebuild -list || true
-
       - name: Install Ruby 3.1.0 & CocoaPods
         script: |
           \curl -sSL https://get.rvm.io | bash -s stable
