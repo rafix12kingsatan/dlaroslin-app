@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -5,14 +6,19 @@
 <dict>
   <key>method</key>
   <string>app-store</string>
+
   <key>signingStyle</key>
   <string>manual</string>
+
   <key>teamID</key>
   <string>XHY8V5C8YG</string>
+
   <key>provisioningProfiles</key>
   <dict>
+    <!-- dokładnie Twój Bundle ID -->
     <key>pl.dlaroslin.app</key>
-    <string>DlaRoslin_AppStore</string>
+    <!-- dokładnie nazwa profilu w Apple Dev Portal -->
+    <string>rafal</string>
   </dict>
 </dict>
 </plist>
