@@ -47,6 +47,7 @@ workflows:
                      -archivePath "$CM_BUILD_DIR/App.xcarchive" \
                      DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
                      CODE_SIGN_STYLE=Manual \
+                     CODE_SIGN_IDENTITY="Apple Distribution: Hurtownia Rolno-Ogrodnicza Inagri sp. z o.o. (XHVBVSC8YG)" \
                      PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
                      archive
 
