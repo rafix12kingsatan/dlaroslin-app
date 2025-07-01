@@ -5,18 +5,30 @@ workflows:
 
     environment:
       vars:
-        # Hasło do pliku .p12 ustaw w Secrets → Environment variables w UI Codemagic jako CM_P12_PASSWORD
-        CM_P12_PASSWORD: Encrypted(…)
-
-        # Zespół Developer Team ID
-        DEVELOPMENT_TEAM: XHY8V5C8YG
+        DEVELOPMENT_TEAM: "XHVBVSC8YG"
+      groups:
+        - code_signing
 
     scripts:
-      - name: Install JS dependencies
+      - name: Check node and npm versions
+        script: |
+          node --version
+          npm --version
+
+      - name: Install dependencies
         script: |
           npm ci
 
-      - name: Install CocoaPods
+      - name: Build & Archive
         script: |
-          cd ios
-          pod install --repo-update
+          xcodebuild -project ios/App.xcodeproj \
+                     -scheme App \
+                     -configuration Release \
+                     -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+                     DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+                     CODE_SIGN_STYLE=Manual \
+                     PROVISIONING_PROFILE_SPECIFIER="$CM_PROVISIONING_PROFILE" \
+                     archive
+
+    artifacts:
+      - build/App.xcarchive
