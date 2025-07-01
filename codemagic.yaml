@@ -29,9 +29,9 @@ workflows:
         script: |
           npm install
 
-      - name: Install @capacitor/ios specific version
+      - name: Install @capacitor/ios latest version (if needed)
         script: |
-          npm install @capacitor/ios@latest
+          npm install @capacitor/ios@latest --save
 
       - name: Build web assets
         script: |
