@@ -28,10 +28,6 @@ workflows:
         script: |
           npm run build
 
-      - name: Sync Capacitor
-        script: |
-          npx cap sync ios
-
       - name: Install CocoaPods
         script: |
           cd ios
@@ -40,8 +36,8 @@ workflows:
       - name: Build iOS app
         script: |
           cd ios
-          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos -archivePath $CM_BUILD_DIR/App.xcarchive archive DEVELOPMENT_TEAM=XHY8V5C8YG PROVISIONING_PROFILE_SPECIFIER=rafal
-          xcodebuild -exportArchive -archivePath $CM_BUILD_DIR/App.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $CM_BUILD_DIR
+          xcodebuild -workspace ios.xcworkspace -scheme ios -configuration Release -sdk iphoneos -archivePath $CM_BUILD_DIR/ios.xcarchive archive DEVELOPMENT_TEAM=XHY8V5C8YG PROVISIONING_PROFILE_SPECIFIER=rafal
+          xcodebuild -exportArchive -archivePath $CM_BUILD_DIR/ios.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $CM_BUILD_DIR
 
     artifacts:
       - $CM_BUILD_DIR/*.ipa
