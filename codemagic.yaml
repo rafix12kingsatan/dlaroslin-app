@@ -5,7 +5,7 @@ workflows:
 
     environment:
       vars:
-        DEVELOPMENT_TEAM: "XHVBVSC8YG"
+        DEVELOPMENT_TEAM: "<TEAM_ID_OF_Hurtownia Rolno-Ogrodnicza Inagri>"  # replace with the Team ID matching your provisioning profile
       groups:
         - code_signing
 
