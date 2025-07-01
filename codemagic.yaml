@@ -8,7 +8,6 @@ workflows:
         NODE_OPTIONS: "--max_old_space_size=4096"
         DEVELOPMENT_TEAM: "XHY8V5C8YG"
         CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
-        # CM_CERTIFICATE i CM_PROVISIONING_PROFILE skonfigurowane jako Secure files w UI
       node: lts
       xcode: latest
 
@@ -35,12 +34,23 @@ workflows:
 
       - name: Setup code signing
         script: |
-          security import "$CM_CERTIFICATE" \
-            -P "$CM_CERTIFICATE_PASSWORD" \
-            -T /usr/bin/codesign
+          echo "🔍 Zawartość katalogu roboczego:"
+          ls -1
+
+          echo "🔑 Importowanie wszystkich certyfikatów (*.p12):"
+          for cert in *.p12; do
+            echo " → import $cert"
+            security import "$cert" \
+              -P "$CM_CERTIFICATE_PASSWORD" \
+              -T /usr/bin/codesign
+          done
+
+          echo "📦 Instalowanie wszystkich provisioning profiles (*.mobileprovision):"
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp "$CM_PROVISIONING_PROFILE" \
-            ~/Library/MobileDevice/Provisioning\ Profiles/
+          for profile in *.mobileprovision; do
+            echo " → copy $profile"
+            cp "$profile" ~/Library/MobileDevice/Provisioning\ Profiles/
+          done
 
       - name: Build & Archive
         script: |
@@ -72,5 +82,10 @@ workflows:
         notify:
           success: true
           failure: true
+
+        
+
+     
+   
 
        
