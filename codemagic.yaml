@@ -3,28 +3,18 @@ workflows:
     name: iOS Capacitor Manual Signing
     instance_type: mac_mini_m2
 
-    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-    # Sekcja środowiska – tu ładujesz certyfikaty/provisioningi w UI Codemagic
-    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     environment:
-      vars:
-        NODE_OPTIONS: "--max_old_space_size=4096"
-        DEVELOPMENT_TEAM: "XHY8V5C8YG"        # Twój Apple Team ID
       groups:
-        - ios-certs                          # grupa z Twoim .p12 i .mobileprovision
-      node: lts
-      xcode: latest
+        - ios-certs                     # Twoje .p12 + .mobileprovision wrzucone w UI
+      vars:
+        DEVELOPMENT_TEAM: "XHY8V5C8YG"  # Twój Apple Team ID
+    node: lts
+    xcode: latest
 
-    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-    # Skrypty budowania
-    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     scripts:
-      - name: Install npm dependencies
+      - name: Install npm & build web
         script: |
           npm ci
-
-      - name: Sync Capacitor iOS
-        script: |
           npx cap sync ios
 
       - name: Install CocoaPods
@@ -32,6 +22,20 @@ workflows:
           cd ios
           pod install
           cd ..
+
+      - name: Prepare keychain
+        script: |
+          echo $CM_CERTIFICATE | base64 --decode > /tmp/cert.p12
+          security create-keychain -p "" build.keychain
+          security import /tmp/cert.p12 -k ~/Library/Keychains/build.keychain -P "$CM_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -s ~/Library/Keychains/build.keychain
+          security default-keychain -s ~/Library/Keychains/build.keychain
+
+      - name: Install provisioning profile
+        script: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo $CM_PROVISIONING_PROFILE | base64 --decode \
+            > ~/Library/MobileDevice/Provisioning\ Profiles/$PROVISIONING_PROFILE_UDID.mobileprovision
 
       - name: Build & Archive
         script: |
@@ -42,24 +46,20 @@ workflows:
             -archivePath $CM_BUILD_DIR/App.xcarchive \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE_SPECIFIER" \
             archive
 
-    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-    # Publikacja i ręczne podpisywanie
-    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+      - name: Export IPA
+        script: |
+          xcodebuild \
+            -exportArchive \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath $CM_BUILD_DIR
+
+    artifacts:
+      - $CM_BUILD_DIR/*.ipa
+
     publishing:
-      xcode_archive: true
-
-      manual_signing:
-        # (1) nazwa Twojego identity, np. "Apple Distribution: Twoja Firma (TEAMID)" albo zmienna:
-        code_signing_identity: $CODE_SIGN_IDENTITY
-
-        # (2) mapowanie bundle-ID → provisioning profile UDID
-        provisioning_profile_mapping:
-          "com.twoja.firma.App": $PROVISIONING_PROFILE_UDID
-
       email:
         recipients:
           - "rafix1278@gmail.com"
@@ -67,3 +67,8 @@ workflows:
           success: true
           failure: true
 
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id:  $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: false
