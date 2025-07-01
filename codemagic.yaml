@@ -19,6 +19,12 @@ workflows:
         script: |
           npm ci
 
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios
+          pod install --repo-update
+          cd ..
+
       - name: Setup code signing
         script: |
           # 1. Create and unlock temporary keychain
@@ -38,19 +44,19 @@ workflows:
           echo "$CM_PROV_PROFILE_BASE64" | base64 --decode \
             > ~/Library/MobileDevice/Provisioning\ Profiles/rafal.mobileprovision
 
-      - name: List available Xcode schemes in project
+      - name: List available Xcode schemes
         script: |
-          xcodebuild -project ios/App.xcodeproj -list
+          xcodebuild -workspace ios/App.xcworkspace -list
 
       - name: Build & Archive
         script: |
-          xcodebuild -project ios/App.xcodeproj \
+          xcodebuild -workspace ios/App.xcworkspace \
                      -scheme App \
                      -configuration Release \
                      -archivePath "$CM_BUILD_DIR/App.xcarchive" \
                      DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-                     CODE_SIGN_STYLE=Manual \
-                     PROVISIONING_PROFILE_SPECIFIER="rafal" \
+                     CODE_SIGN_STYLE=Automatic \
+                     -allowProvisioningUpdates \
                      archive
 
     artifacts:
