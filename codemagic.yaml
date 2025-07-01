@@ -5,33 +5,56 @@ workflows:
 
     environment:
       vars:
-        DEVELOPMENT_TEAM: "XHVBVSC8YG"   # Twój Team ID
+        DEVELOPMENT_TEAM: "XHVBVSC8YG"
+      groups:
+        - code_signing
 
     scripts:
-      - name: Check node and npm versions
-        script: |
-          node --version
-          npm --version
-
       - name: Install dependencies
         script: |
           npm ci
 
-      - name: Install CocoaPods dependencies
+      - name: Install CocoaPods
         script: |
           cd ios
           pod install --repo-update
           cd ..
 
-      - name: Build & Archive (Automatic Signing)
+      - name: Setup code signing
         script: |
+          # 1. Create and unlock a temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+
+          # 2. Decode and import certificate
+          echo "$CM_P12_BASE64" | base64 --decode > certificate.p12
+          security import certificate.p12 \
+            -k build.keychain \
+            -P "$CM_P12_PASSWORD" \
+            -T /usr/bin/codesign
+
+          # 3. Decode provisioning profile and name it by its UUID
+          PROV_FILE=rafal.mobileprovision
+          echo "$CM_PROV_PROFILE_BASE64" | base64 --decode > "$PROV_FILE"
+          # Extract the UUID from the .mobileprovision
+          PROFILE_UUID=$(security cms -D -i "$PROV_FILE" | plutil -extract UUID xml1 -o - - | xmllint --xpath 'string(//string)' -)
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$PROV_FILE" ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+
+          # Set environment variable for xcodebuild
+          echo "export PROVISIONING_PROFILE=$PROFILE_UUID" >> $BASH_ENV
+
+      - name: Build & Archive
+        script: |
+          source $BASH_ENV
           xcodebuild -workspace ios/App.xcworkspace \
                      -scheme App \
                      -configuration Release \
                      -archivePath "$CM_BUILD_DIR/App.xcarchive" \
                      DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-                     CODE_SIGN_STYLE=Automatic \
-                     -allowProvisioningUpdates \
+                     CODE_SIGN_STYLE=Manual \
+                     PROVISIONING_PROFILE=$PROVISIONING_PROFILE \
                      archive
 
     artifacts:
