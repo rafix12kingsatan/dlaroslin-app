@@ -5,7 +5,7 @@ workflows:
 
     environment:
       vars:
-        DEVELOPMENT_TEAM: "XHVBVSC8YG"
+        DEVELOPMENT_TEAM: "XHV8VSC8YG"
       groups:
         - code_signing
 
