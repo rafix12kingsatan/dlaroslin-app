@@ -3,28 +3,21 @@ workflows:
     name: iOS Build (Capacitor)
     instance_type: mac_mini_m2
 
-    # ─── Sekcja code_signing ──────────────────────────────────────────
-    code_signing:
-      certificates:
-        - certificate: rafal.p12
-          environment_variable: CM_CERTIFICATE
-          password: $CM_CERTIFICATE_PASSWORD
-      provisioning_profiles:
-        - profile: rafal.mobileprovision
-          environment_variable: CM_PROVISIONING_PROFILE
-    # ────────────────────────────────────────────────────────────────────
-
     environment:
       vars:
-        NODE_OPTIONS: "--max_old_space_size=4096"
+        # zaszyfrowane hasło do .p12 (zdefiniuj je jako Secret w UI)
         CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
-        # Twój Apple Team ID:
+        # Twój Apple Team ID
         DEVELOPMENT_TEAM: "XHY8V5C8YG"
+        # (CM_CERTIFICATE i CM_PROVISIONING_PROFILE nie definiujesz tutaj,
+        #  tylko w UI w zakładce Secure files – ich ścieżki trafią
+        #  do tych zmiennych automatycznie)
+        NODE_OPTIONS: "--max_old_space_size=4096"
       node: lts
       xcode: latest
 
     scripts:
-      - name: Check node and npm versions
+      - name: Check node and npm
         script: |
           node --version
           npm --version
@@ -44,13 +37,24 @@ workflows:
           pod install
           cd ..
 
+      - name: Setup code signing
+        script: |
+          # Importuj certyfikat do keychain
+          security import "$CM_CERTIFICATE" \
+            -P "$CM_CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign
+          # Skopiuj provisioning profile
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$CM_PROVISIONING_PROFILE" \
+             "$HOME/Library/MobileDevice/Provisioning Profiles/"
+
       - name: Build & Archive
         script: |
           xcodebuild \
             -workspace ios/App.xcworkspace \
             -scheme App \
             -configuration Release \
-            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
@@ -60,9 +64,9 @@ workflows:
         script: |
           xcodebuild \
             -exportArchive \
-            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
             -exportOptionsPlist ExportOptions.plist \
-            -exportPath $CM_BUILD_DIR
+            -exportPath "$CM_BUILD_DIR"
 
     artifacts:
       - $CM_BUILD_DIR/*.ipa
