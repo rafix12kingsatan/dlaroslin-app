@@ -77,7 +77,9 @@ workflows:
             -configuration Release \
             -archivePath "$CM_BUILD_DIR/App.xcarchive" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="rafal" \
             archive
 
       - name: Export IPA
@@ -99,3 +101,6 @@ workflows:
         notify:
           success: true
           failure: true
+
+     
+   
