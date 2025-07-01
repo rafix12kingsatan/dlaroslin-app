@@ -5,11 +5,11 @@ workflows:
 
     environment:
       vars:
-        # pamiętaj dodać tu swoje hasło do .p12
-        CM_CERTIFICATE_PASSWORD: "$CM_CERTIFICATE_PASSWORD"
-        DEVELOPMENT_TEAM: "XHY8V5C8YG"
-      cocoapods:
-        cache: true
+        # Hasło do pliku .p12 ustaw w Secrets → Environment variables w UI Codemagic jako CM_P12_PASSWORD
+        CM_P12_PASSWORD: Encrypted(…)
+
+        # Zespół Developer Team ID
+        DEVELOPMENT_TEAM: XHY8V5C8YG
 
     scripts:
       - name: Install JS dependencies
@@ -24,26 +24,27 @@ workflows:
 
       - name: Prepare App resources
         script: |
-          # Ścieżka do głównego katalogu repo
           PROJECT_ROOT="$CM_WORKING_DIRECTORY"
-
-          # Upewnij się, że katalog ios/App istnieje
           mkdir -p ios/App
-
-          # Skopiuj tylko folder public
           rm -rf ios/App/public
           cp -R "${PROJECT_ROOT}/public" ios/App/public || true
 
       - name: Setup code signing (Import cert & provisioning)
         script: |
-          # zakładając, że certyfikat .p12 i provisioning są zapisane jako zmienne środowiskowe
+          # Dekoduj i zaimportuj certyfikat .p12
           echo $CM_P12_BASE64 | base64 --decode > certificate.p12
           security create-keychain -p "" build.keychain
-          security import certificate.p12 -k ~/Library/Keychains/build.keychain -P "$CM_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security import certificate.p12 \
+            -k ~/Library/Keychains/build.keychain \
+            -P "$CM_P12_PASSWORD" \
+            -T /usr/bin/codesign
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
+
+          # Dekoduj i skopiuj provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo $CM_MOBILEPROVISION_BASE64 | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/rafal.mobileprovision
+          echo $CM_MOBILEPROVISION_BASE64 | base64 --decode > \
+            ~/Library/MobileDevice/Provisioning\ Profiles/rafal.mobileprovision
 
       - name: Build & Archive (Manual Signing)
         script: |
