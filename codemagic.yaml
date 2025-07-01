@@ -22,22 +22,21 @@ workflows:
           source ~/.rvm/scripts/rvm
           rvm install 3.1.0
           rvm use 3.1.0 --default
-          ruby -v
           gem install cocoapods
 
       - name: Install npm dependencies
         script: |
           npm install
 
-      - name: Install @capacitor/ios latest version (if needed)
+      - name: Capacitor sync iOS
         script: |
-          npm install @capacitor/ios@latest --save
+          npx cap sync ios
 
       - name: Build web assets
         script: |
           npm run build
 
-      - name: Install CocoaPods
+      - name: Install CocoaPods & Pods
         script: |
           cd ios
           pod install --repo-update
@@ -45,12 +44,26 @@ workflows:
       - name: Build iOS app
         script: |
           cd ios
-          xcodebuild -workspace ios.xcworkspace -scheme ios -configuration Release -sdk iphoneos -archivePath $CM_BUILD_DIR/ios.xcarchive archive DEVELOPMENT_TEAM=XHY8V5C8YG PROVISIONING_PROFILE_SPECIFIER=rafal
-          xcodebuild -exportArchive -archivePath $CM_BUILD_DIR/ios.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $CM_BUILD_DIR
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            archive \
+            DEVELOPMENT_TEAM=XHY8V5C8YG \
+            PROVISIONING_PROFILE_SPECIFIER=rafal
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath $CM_BUILD_DIR
 
     artifacts:
       - $CM_BUILD_DIR/*.ipa
       - /tmp/xcodebuild_logs/*.log
+
     publishing:
       email:
         recipients:
@@ -58,3 +71,5 @@ workflows:
         notify:
           success: true
           failure: true
+
+      
