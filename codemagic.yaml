@@ -5,9 +5,7 @@ workflows:
 
     environment:
       vars:
-        DEVELOPMENT_TEAM: "XHVBVSC8YG"
-      groups:
-        - code_signing
+        DEVELOPMENT_TEAM: "XHVBVSC8YG"   # Twój Team ID
 
     scripts:
       - name: Check node and npm versions
@@ -25,30 +23,7 @@ workflows:
           pod install --repo-update
           cd ..
 
-      - name: Setup code signing
-        script: |
-          # 1. Create and unlock temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-
-          # 2. Decode and import .p12 certificate
-          echo "$CM_P12_BASE64" | base64 --decode > certificate.p12
-          security import certificate.p12 \
-            -k build.keychain \
-            -P "$CM_P12_PASSWORD" \
-            -T /usr/bin/codesign
-
-          # 3. Decode provisioning profile
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "$CM_PROV_PROFILE_BASE64" | base64 --decode \
-            > ~/Library/MobileDevice/Provisioning\ Profiles/rafal.mobileprovision
-
-      - name: List available Xcode schemes
-        script: |
-          xcodebuild -workspace ios/App.xcworkspace -list
-
-      - name: Build & Archive
+      - name: Build & Archive (Automatic Signing)
         script: |
           xcodebuild -workspace ios/App.xcworkspace \
                      -scheme App \
