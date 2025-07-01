@@ -5,19 +5,15 @@ workflows:
 
     environment:
       vars:
-        # zaszyfrowane hasło do .p12 (zdefiniuj je jako Secret w UI)
-        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
-        # Twój Apple Team ID
-        DEVELOPMENT_TEAM: "XHY8V5C8YG"
-        # (CM_CERTIFICATE i CM_PROVISIONING_PROFILE nie definiujesz tutaj,
-        #  tylko w UI w zakładce Secure files – ich ścieżki trafią
-        #  do tych zmiennych automatycznie)
         NODE_OPTIONS: "--max_old_space_size=4096"
+        DEVELOPMENT_TEAM: "XHY8V5C8YG"
+        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
+        # CM_CERTIFICATE i CM_PROVISIONING_PROFILE skonfigurowane jako Secure files w UI
       node: lts
       xcode: latest
 
     scripts:
-      - name: Check node and npm
+      - name: Check node and npm versions
         script: |
           node --version
           npm --version
@@ -39,14 +35,12 @@ workflows:
 
       - name: Setup code signing
         script: |
-          # Importuj certyfikat do keychain
           security import "$CM_CERTIFICATE" \
             -P "$CM_CERTIFICATE_PASSWORD" \
             -T /usr/bin/codesign
-          # Skopiuj provisioning profile
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp "$CM_PROVISIONING_PROFILE" \
-             "$HOME/Library/MobileDevice/Provisioning Profiles/"
+            ~/Library/MobileDevice/Provisioning\ Profiles/
 
       - name: Build & Archive
         script: |
@@ -56,7 +50,6 @@ workflows:
             -configuration Release \
             -archivePath "$CM_BUILD_DIR/App.xcarchive" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             archive
 
@@ -79,3 +72,5 @@ workflows:
         notify:
           success: true
           failure: true
+
+       
