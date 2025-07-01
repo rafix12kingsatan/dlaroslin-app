@@ -3,6 +3,14 @@ workflows:
     name: iOS Build (Capacitor)
     instance_type: mac_mini_m2
 
+    environment:
+      vars:
+        # pamiętaj dodać tu swoje hasło do .p12
+        CM_CERTIFICATE_PASSWORD: "$CM_CERTIFICATE_PASSWORD"
+        DEVELOPMENT_TEAM: "XHY8V5C8YG"
+      cocoapods:
+        cache: true
+
     scripts:
       - name: Install JS dependencies
         script: |
@@ -16,28 +24,38 @@ workflows:
 
       - name: Prepare App resources
         script: |
-          # CM_WORKING_DIRECTORY to katalog główny repo
+          # Ścieżka do głównego katalogu repo
           PROJECT_ROOT="$CM_WORKING_DIRECTORY"
 
-          # Utwórz katalog docelowy
+          # Upewnij się, że katalog ios/App istnieje
           mkdir -p ios/App
 
-          # Skopiuj pliki konfiguracyjne
-          cp "${PROJECT_ROOT}/config.xml" ios/App/config.xml
-          cp "${PROJECT_ROOT}/capacitor.config.json" ios/App/capacitor.config.json
-
-          # Skopiuj folder public z głównego katalogu do ios/App/public
+          # Skopiuj tylko folder public
           rm -rf ios/App/public
-          cp -R "${PROJECT_ROOT}/public" ios/App/public
+          cp -R "${PROJECT_ROOT}/public" ios/App/public || true
 
-      - name: Build & Archive (Automatic Signing)
+      - name: Setup code signing (Import cert & provisioning)
+        script: |
+          # zakładając, że certyfikat .p12 i provisioning są zapisane jako zmienne środowiskowe
+          echo $CM_P12_BASE64 | base64 --decode > certificate.p12
+          security create-keychain -p "" build.keychain
+          security import certificate.p12 -k ~/Library/Keychains/build.keychain -P "$CM_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo $CM_MOBILEPROVISION_BASE64 | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/rafal.mobileprovision
+
+      - name: Build & Archive (Manual Signing)
         script: |
           xcodebuild \
             -workspace ios/App.xcworkspace \
             -scheme App \
             -configuration Release \
             -archivePath "$CM_BUILD_DIR/App.xcarchive" \
-            -allowProvisioningUpdates \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="rafal" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
             archive
 
     artifacts:
