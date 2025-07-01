@@ -2,13 +2,23 @@ workflows:
   ios-capacitor-build:
     name: iOS Build (Capacitor)
     instance_type: mac_mini_m2
+
+    # ─── Sekcja code_signing ──────────────────────────────────────────
+    code_signing:
+      certificates:
+        - certificate: rafal.p12
+          environment_variable: CM_CERTIFICATE
+          password: $CM_CERTIFICATE_PASSWORD
+      provisioning_profiles:
+        - profile: rafal.mobileprovision
+          environment_variable: CM_PROVISIONING_PROFILE
+    # ────────────────────────────────────────────────────────────────────
+
     environment:
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
-        CM_CERTIFICATE: "rafal.p12"
         CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
-        CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
-        # Podmień tutaj na swój TEAM_ID:
+        # Twój Apple Team ID:
         DEVELOPMENT_TEAM: "XHY8V5C8YG"
       node: lts
       xcode: latest
@@ -33,17 +43,6 @@ workflows:
           cd ios
           pod install
           cd ..
-
-      - name: Setup code signing
-        script: |
-          # import certyfikat do keychain
-          security import "$CM_CERTIFICATE" \
-            -P "$CM_CERTIFICATE_PASSWORD" \
-            -T /usr/bin/codesign
-          # zainstaluj provisioning profile
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp "$CM_PROVISIONING_PROFILE" \
-            ~/Library/MobileDevice/Provisioning\ Profiles/rafal.mobileprovision
 
       - name: Build & Archive
         script: |
