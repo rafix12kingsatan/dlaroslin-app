@@ -32,9 +32,8 @@ workflows:
                      -configuration Release \
                      -archivePath "$CM_BUILD_DIR/App.xcarchive" \
                      DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+                     -allowProvisioningUpdates \
                      archive
 
     artifacts:
       - build/App.xcarchive
-
-                   
