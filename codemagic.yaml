@@ -40,7 +40,7 @@ workflows:
 
       - name: Build & Archive
         script: |
-          xcodebuild -workspace App.xcworkspace \
+          xcodebuild -workspace ios/App.xcworkspace \
                      -scheme App \
                      -configuration Release \
                      -archivePath "$CM_BUILD_DIR/App.xcarchive" \
