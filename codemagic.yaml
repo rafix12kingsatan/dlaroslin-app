@@ -15,7 +15,7 @@ workflows:
           node --version
           npm --version
 
-      - name: Install dependencies
+      - name: Install JS dependencies
         script: |
           npm ci
 
@@ -37,3 +37,4 @@ workflows:
 
     artifacts:
       - build/App.xcarchive
+
