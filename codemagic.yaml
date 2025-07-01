@@ -11,6 +11,11 @@ workflows:
       node: lts
       xcode: latest
     scripts:
+      - name: Check node and npm versions
+        script: |
+          node -v
+          npm -v
+          
       - name: Install Ruby 3.1.0 & CocoaPods
         script: |
           \curl -sSL https://get.rvm.io | bash -s stable
@@ -23,8 +28,8 @@ workflows:
       - name: Install npm dependencies
         script: |
           npm install
-          
-      - name: Install @capacitor/ios
+
+      - name: Install @capacitor/ios specific version
         script: |
           npm install @capacitor/ios@latest
 
