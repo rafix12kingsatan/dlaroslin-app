@@ -3,23 +3,58 @@ workflows:
     name: iOS Build (Capacitor)
     instance_type: mac_mini_m2
 
+    environment:
+      vars:
+        DEVELOPMENT_TEAM: "XHY8V5C8YG"  # Team ID matching your provisioning profile
+      groups:
+        - code_signing
+
     scripts:
-      - name: Install JS dependencies
+      - name: Install dependencies
         script: |
           npm ci
 
-      - name: Install CocoaPods
+      - name: Install CocoaPods dependencies
         script: |
           cd ios
           pod install --repo-update
           cd ..
 
-      - name: Build & Archive (Automatic Signing)
+      - name: Setup code signing and Build & Archive
         script: |
+          # 1. Create and unlock temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+
+          # 2. Decode and import .p12 certificate
+          echo "$CM_P12_BASE64" | base64 --decode > certificate.p12
+          security import certificate.p12 \
+            -k build.keychain \
+            -P "$CM_P12_PASSWORD" \
+            -T /usr/bin/codesign
+
+          # 3. Decode provisioning profile and extract UUID
+          echo "$CM_PROV_PROFILE_BASE64" | base64 --decode > rafal.mobileprovision
+          PROFILE_UUID=$(security cms -D -i rafal.mobileprovision \
+            | plutil -extract UUID xml1 -o - - \
+            | xmllint --xpath 'string(//string)' -)
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp rafal.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+
+          # 4. Detect signing identity and Build & Archive with Manual signing
+          SIGN_IDENTITY=$(security find-identity -v -p codesigning \
+            | grep "$DEVELOPMENT_TEAM" | grep 'Distribution' | head -n1 | awk -F '"' '{print $2}')
+          echo "Using CODE_SIGN_IDENTITY: $SIGN_IDENTITY"
+
           xcodebuild -workspace ios/App.xcworkspace \
                      -scheme App \
                      -configuration Release \
                      -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+                     DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+                     CODE_SIGN_STYLE=Manual \
+                     CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
+                     PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
                      archive
 
     artifacts:
