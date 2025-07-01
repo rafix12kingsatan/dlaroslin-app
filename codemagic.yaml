@@ -8,6 +8,8 @@ workflows:
         CM_CERTIFICATE: "rafal.p12"
         CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
         CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
+        # Nie zapomnij podstawić tutaj Twojego TEAM_ID:
+        DEVELOPMENT_TEAM: "XHY8V5C8YG"
       node: lts
       xcode: latest
     scripts:
@@ -15,21 +17,20 @@ workflows:
         script: |
           node -v
           npm -v
-          
+
       - name: Install Ruby 3.1.0 & CocoaPods
         script: |
           \curl -sSL https://get.rvm.io | bash -s stable
           source ~/.rvm/scripts/rvm
           rvm install 3.1.0
           rvm use 3.1.0 --default
-          ruby -v
           gem install cocoapods
 
       - name: Install npm dependencies
         script: |
           npm install
 
-      - name: Install @capacitor/ios latest version (if needed)
+      - name: Install @capacitor/ios (latest)
         script: |
           npm install @capacitor/ios@latest --save
 
@@ -37,20 +38,44 @@ workflows:
         script: |
           npm run build
 
+      # <-- 1) Instalacja podów musi się znaleźć przed xcodebuild
       - name: Install CocoaPods
         script: |
           cd ios
           pod install --repo-update
+          cd ..
+
+      # <-- 2) (opcjonalnie) szybki debug, by sprawdzić, że App.xcworkspace i shared scheme istnieją
+      - name: Debug workspace contents
+        script: |
+          echo "Workspace files:"
+          ls ios
+          echo "Shared schemes:"
+          ls ios/App.xcworkspace/xcshareddata/xcschemes || echo "(brak folderu xcschemes!)"
 
       - name: Build iOS app
         script: |
           cd ios
-          xcodebuild -workspace ios.xcworkspace -scheme ios -configuration Release -sdk iphoneos -archivePath $CM_BUILD_DIR/ios.xcarchive archive DEVELOPMENT_TEAM=XHY8V5C8YG PROVISIONING_PROFILE_SPECIFIER=rafal
-          xcodebuild -exportArchive -archivePath $CM_BUILD_DIR/ios.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $CM_BUILD_DIR
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            archive \
+            DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
+            PROVISIONING_PROFILE_SPECIFIER=rafal
+
+          # Eksport .ipa
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath $CM_BUILD_DIR
 
     artifacts:
       - $CM_BUILD_DIR/*.ipa
       - /tmp/xcodebuild_logs/*.log
+
     publishing:
       email:
         recipients:
