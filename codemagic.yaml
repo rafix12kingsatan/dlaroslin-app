@@ -1,67 +1,69 @@
 workflows:
-  ios-capacitor-build:
-    name: iOS Build (Capacitor)
+  ios_manual_sign:
+    name: iOS Capacitor Manual Signing
     instance_type: mac_mini_m2
+
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+    # Sekcja środowiska – tu ładujesz certyfikaty/provisioningi w UI Codemagic
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     environment:
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
-        CM_CERTIFICATE: "rafal.p12"
-        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
-        CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
-        # Nie zapomnij podstawić tutaj Twojego TEAM_ID:
-        DEVELOPMENT_TEAM: "XHY8V5C8YG"
+        DEVELOPMENT_TEAM: "XHY8V5C8YG"        # Twój Apple Team ID
+      groups:
+        - ios-certs                          # grupa z Twoim .p12 i .mobileprovision
       node: lts
       xcode: latest
-    scripts:
-      - name: Check node and npm versions
-        script: |
-          node --version
-          npm --version
 
-      - name: Install dependencies
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+    # Skrypty budowania
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+    scripts:
+      - name: Install npm dependencies
         script: |
           npm ci
 
-      - name: Build Capacitor app
+      - name: Sync Capacitor iOS
         script: |
           npx cap sync ios
-          npx cap copy ios
 
       - name: Install CocoaPods
         script: |
-          cd ios/App
+          cd ios
           pod install
-          cd ../..
+          cd ..
 
       - name: Build & Archive
         script: |
           xcodebuild \
-            -workspace ios/App/App.xcworkspace \
+            -workspace ios/App.xcworkspace \
             -scheme App \
             -configuration Release \
             -archivePath $CM_BUILD_DIR/App.xcarchive \
-            archive \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="rafal"
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE_SPECIFIER" \
+            archive
 
-      - name: Export IPA
-        script: |
-          xcodebuild \
-            -exportArchive \
-            -archivePath $CM_BUILD_DIR/App.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath $CM_BUILD_DIR
-
-    artifacts:
-      - $CM_BUILD_DIR/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+    # Publikacja i ręczne podpisywanie
+    # ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     publishing:
+      xcode_archive: true
+
+      manual_signing:
+        # (1) nazwa Twojego identity, np. "Apple Distribution: Twoja Firma (TEAMID)" albo zmienna:
+        code_signing_identity: $CODE_SIGN_IDENTITY
+
+        # (2) mapowanie bundle-ID → provisioning profile UDID
+        provisioning_profile_mapping:
+          "com.twoja.firma.App": $PROVISIONING_PROFILE_UDID
+
       email:
         recipients:
           - "rafix1278@gmail.com"
         notify:
           success: true
           failure: true
+
