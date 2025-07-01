@@ -8,7 +8,7 @@ workflows:
         CM_CERTIFICATE: "rafal.p12"
         CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
         CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
-        # Twój TEAM_ID:
+        # Podmień tutaj na swój TEAM_ID:
         DEVELOPMENT_TEAM: "XHY8V5C8YG"
       node: lts
       xcode: latest
@@ -34,6 +34,17 @@ workflows:
           pod install
           cd ..
 
+      - name: Setup code signing
+        script: |
+          # import certyfikat do keychain
+          security import "$CM_CERTIFICATE" \
+            -P "$CM_CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign
+          # zainstaluj provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$CM_PROVISIONING_PROFILE" \
+            ~/Library/MobileDevice/Provisioning\ Profiles/rafal.mobileprovision
+
       - name: Build & Archive
         script: |
           xcodebuild \
@@ -44,7 +55,6 @@ workflows:
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="rafal" \
             archive
 
       - name: Export IPA
