@@ -2,6 +2,8 @@ workflows:
   ios-capacitor-build:
     name: iOS Build (Capacitor)
     instance_type: mac_mini_m2
+
+    # Załaduj certyfikat .p12, profil .mobileprovision i ustaw NODE_OPTIONS
     environment:
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
@@ -10,13 +12,14 @@ workflows:
         CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
       node: lts
       xcode: latest
+
     scripts:
       - name: Check node and npm versions
         script: |
           node -v
           npm -v
-          
-      - name: Install Ruby 3.1.0 & CocoaPods
+
+      - name: Install Ruby & CocoaPods
         script: |
           \curl -sSL https://get.rvm.io | bash -s stable
           source ~/.rvm/scripts/rvm
@@ -28,15 +31,15 @@ workflows:
         script: |
           npm install
 
-      - name: Capacitor sync iOS
-        script: |
-          npx cap sync ios
-
       - name: Build web assets
         script: |
           npm run build
 
-      - name: Install CocoaPods & Pods
+      - name: Capacitor sync iOS
+        script: |
+          npx cap sync ios
+
+      - name: Install CocoaPods dependencies
         script: |
           cd ios
           pod install --repo-update
@@ -71,5 +74,3 @@ workflows:
         notify:
           success: true
           failure: true
-
-      
