@@ -5,11 +5,9 @@ workflows:
 
     environment:
       vars:
-        NODE_OPTIONS: "--max_old_space_size=4096"
-        DEVELOPMENT_TEAM: "XHY8V5C8YG"
-        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
-      node: lts
-      xcode: latest
+        DEVELOPMENT_TEAM: "XHVBVSC8YG"
+      groups:
+        - code_signing
 
     scripts:
       - name: Check node and npm versions
@@ -21,82 +19,41 @@ workflows:
         script: |
           npm ci
 
-      - name: Build Capacitor app
-        script: |
-          npx cap sync ios
-          npx cap copy ios
-
-      - name: Install CocoaPods
-        script: |
-          cd ios
-          pod install
-          cd ..
-
       - name: Setup code signing
         script: |
-          echo "🔍 Zawartość root katalogu i kilku podkatalogów:"
-          ls -R1 .
+          # 1. Create and unlock temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
 
-          # 1) Jeśli nie masz gotowego rafal.p12, ale masz certificate.pem i mykey.key, to je połącz:
-          if [ ! -f rafal.p12 ] && [ -f certificate.pem ] && [ -f mykey.key ]; then
-            echo "🔧 Tworzę rafal.p12 z .pem + .key"
-            openssl pkcs12 -export \
-              -inkey mykey.key \
-              -in certificate.pem \
-              -certfile distribution.cer \
-              -out rafal.p12 \
-              -passout pass:"$CM_CERTIFICATE_PASSWORD"
-          fi
+          # 2. Decode and import .p12 certificate
+          echo "$CM_P12_BASE64" | base64 --decode > certificate.p12
+          security import certificate.p12 \
+            -k build.keychain \
+            -P "$CM_P12_PASSWORD" \
+            -T /usr/bin/codesign
 
-          # 2) Importuj wszystkie pliki .p12
-          echo "🔑 Importowanie certyfikatów (*.p12):"
-          for cert in *.p12; do
-            [ -f "$cert" ] && echo " → import $cert" && \
-              security import "$cert" \
-                -P "$CM_CERTIFICATE_PASSWORD" \
-                -T /usr/bin/codesign
-          done
-
-          # 3) Skopiuj wszystkie provisioning profiles z całego drzewa
-          echo "📦 Szukam i kopiuję provisioning profiles:"
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          find . -type f -name "*.mobileprovision" | while read p; do
-            echo " → copy $p"
-            cp "$p" "$HOME/Library/MobileDevice/Provisioning Profiles/"
-          done
-
-          # 4) Sprawdź finalnie katalog docelowy
-          echo "✅ Finalne provisioning profiles:"
-          ls -1 "$HOME/Library/MobileDevice/Provisioning Profiles/"
+          # 3. Decode provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$CM_PROV_PROFILE_BASE64" | base64 --decode \
+            > ~/Library/MobileDevice/Provisioning\ Profiles/rafal.mobileprovision
 
       - name: Build & Archive
         script: |
-          xcodebuild \
-            -workspace ios/App.xcworkspace \
-            -scheme App \
-            -configuration Release \
-            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
-            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            CODE_SIGN_STYLE=Automatic \
-            -allowProvisioningUpdates \
-            archive
-
-      - name: Export IPA
-        script: |
-          xcodebuild \
-            -exportArchive \
-            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath "$CM_BUILD_DIR"
+          xcodebuild -workspace App.xcworkspace \
+                     -scheme App \
+                     -configuration Release \
+                     -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+                     DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+                     CODE_SIGN_STYLE=Manual \
+                     PROVISIONING_PROFILE_SPECIFIER="rafal" \
+                     archive
 
     artifacts:
-      - $CM_BUILD_DIR/*.ipa
-      - /tmp/xcodebuild_logs/*.log
+      - build/App.xcarchive
 
     publishing:
-      email:
-        recipients:
-          - "rafix1278@gmail.com"
-        notify:
-          success: true
-          failure: true
+      ios_signing:
+        signing_certificate: "rafal"
+        provisioning_profile: "rafal"
+
