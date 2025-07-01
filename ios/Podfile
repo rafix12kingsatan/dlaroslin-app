@@ -1,8 +1,5 @@
 platform :ios, '13.0'
 
-# Ścieżka do projektu
-project 'dlaroslin-app/ios/App/App.xcodeproj'
-
 target 'App' do
   use_frameworks!
 
