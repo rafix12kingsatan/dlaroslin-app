@@ -5,7 +5,7 @@ workflows:
 
     environment:
       vars:
-        DEVELOPMENT_TEAM: "<TEAM_ID_OF_Hurtownia Rolno-Ogrodnicza Inagri>"  # replace with the Team ID matching your provisioning profile
+        DEVELOPMENT_TEAM: "XHY8V5C8YG"
       groups:
         - code_signing
 
@@ -36,18 +36,21 @@ workflows:
 
           # 3. Decode provisioning profile and extract UUID
           echo "$CM_PROV_PROFILE_BASE64" | base64 --decode > rafal.mobileprovision
-          PROFILE_UUID=$(security cms -D -i rafal.mobileprovision | plutil -extract UUID xml1 -o - - | xmllint --xpath 'string(//string)' -)
+          PROFILE_UUID=$(security cms -D -i rafal.mobileprovision \
+            | plutil -extract UUID xml1 -o - - \
+            | xmllint --xpath 'string(//string)' -)
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp rafal.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+          cp rafal.mobileprovision \
+            ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
 
           # 4. Build & Archive with Manual signing
           xcodebuild -workspace ios/App.xcworkspace \
                      -scheme App \
                      -configuration Release \
                      -archivePath "$CM_BUILD_DIR/App.xcarchive" \
-                     DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+                     DEVELOPMENT_TEAM="XHY8V5C8YG" \
                      CODE_SIGN_STYLE=Manual \
-                     CODE_SIGN_IDENTITY="Apple Distribution: Hurtownia Rolno-Ogrodnicza Inagri sp. z o.o. (XHVBVSC8YG)" \
+                     CODE_SIGN_IDENTITY="Apple Distribution: Hurtownia Rolno-Ogrodnicza Inagri sp. z o.o. (XHY8V5C8YG)" \
                      PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
                      archive
 
