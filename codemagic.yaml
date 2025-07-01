@@ -5,14 +5,14 @@ workflows:
 
     environment:
       groups:
-        - ios-certs                     # Twoje .p12 + .mobileprovision wrzucone w UI
+        - ios-certs                     # grupa z Twoim .p12 + .mobileprovision
+      node: lts                         # wersja Node.js
+      xcode: latest                     # wersja Xcode
       vars:
         DEVELOPMENT_TEAM: "XHY8V5C8YG"  # Twój Apple Team ID
-    node: lts
-    xcode: latest
 
     scripts:
-      - name: Install npm & build web
+      - name: Install npm & sync Capacitor
         script: |
           npm ci
           npx cap sync ios
@@ -27,7 +27,10 @@ workflows:
         script: |
           echo $CM_CERTIFICATE | base64 --decode > /tmp/cert.p12
           security create-keychain -p "" build.keychain
-          security import /tmp/cert.p12 -k ~/Library/Keychains/build.keychain -P "$CM_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security import /tmp/cert.p12 \
+            -k ~/Library/Keychains/build.keychain \
+            -P "$CM_CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign
           security list-keychains -s ~/Library/Keychains/build.keychain
           security default-keychain -s ~/Library/Keychains/build.keychain
 
