@@ -38,10 +38,14 @@ workflows:
           echo "$CM_PROV_PROFILE_BASE64" | base64 --decode \
             > ~/Library/MobileDevice/Provisioning\ Profiles/rafal.mobileprovision
 
+      - name: List available Xcode schemes
+        script: |
+          xcodebuild -workspace ios/App.xcworkspace -list
+
       - name: Build & Archive
         script: |
           xcodebuild -workspace ios/App.xcworkspace \
-                     -scheme App \
+                     -scheme App \  # <-- replace 'App' with the correct scheme after you see the list above
                      -configuration Release \
                      -archivePath "$CM_BUILD_DIR/App.xcarchive" \
                      DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
