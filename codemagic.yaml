@@ -3,7 +3,6 @@ workflows:
     name: iOS Build (Capacitor)
     instance_type: mac_mini_m2
 
-    # Załaduj certyfikat .p12, profil .mobileprovision i ustaw NODE_OPTIONS
     environment:
       vars:
         NODE_OPTIONS: "--max_old_space_size=4096"
@@ -37,6 +36,7 @@ workflows:
 
       - name: Capacitor sync iOS
         script: |
+          cd ios
           npx cap sync ios
 
       - name: Install CocoaPods dependencies
