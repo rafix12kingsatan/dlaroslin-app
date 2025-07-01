@@ -51,9 +51,3 @@ workflows:
 
     artifacts:
       - build/App.xcarchive
-
-    publishing:
-      ios_signing:
-        signing_certificate: "rafal"
-        provisioning_profile: "rafal"
-
