@@ -1,55 +1,50 @@
 workflows:
-  ios_manual_sign:
-    name: iOS Capacitor Manual Signing
+  ios-capacitor-build:
+    name: iOS Build (Capacitor)
     instance_type: mac_mini_m2
-
     environment:
-      groups:
-        - ios-certs                     # grupa z Twoim .p12 + .mobileprovision
-      node: lts                         # wersja Node.js
-      xcode: latest                     # wersja Xcode
       vars:
-        DEVELOPMENT_TEAM: "XHY8V5C8YG"  # Twój Apple Team ID
-
+        NODE_OPTIONS: "--max_old_space_size=4096"
+        CM_CERTIFICATE: "rafal.p12"
+        CM_CERTIFICATE_PASSWORD: "QH2wICnyE"
+        CM_PROVISIONING_PROFILE: "rafal.mobileprovision"
+        # Nie zapomnij podstawić tutaj Twojego TEAM_ID:
+        DEVELOPMENT_TEAM: "XHY8V5C8YG"
+      node: lts
+      xcode: latest
     scripts:
-      - name: Install npm & sync Capacitor
+      - name: Check node and npm versions
+        script: |
+          node --version
+          npm --version
+
+      - name: Install dependencies
         script: |
           npm ci
+
+      - name: Build Capacitor app
+        script: |
           npx cap sync ios
+          npx cap copy ios
 
       - name: Install CocoaPods
         script: |
-          cd ios
+          cd ios/App
           pod install
-          cd ..
-
-      - name: Prepare keychain
-        script: |
-          echo $CM_CERTIFICATE | base64 --decode > /tmp/cert.p12
-          security create-keychain -p "" build.keychain
-          security import /tmp/cert.p12 \
-            -k ~/Library/Keychains/build.keychain \
-            -P "$CM_CERTIFICATE_PASSWORD" \
-            -T /usr/bin/codesign
-          security list-keychains -s ~/Library/Keychains/build.keychain
-          security default-keychain -s ~/Library/Keychains/build.keychain
-
-      - name: Install provisioning profile
-        script: |
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo $CM_PROVISIONING_PROFILE | base64 --decode \
-            > ~/Library/MobileDevice/Provisioning\ Profiles/$PROVISIONING_PROFILE_UDID.mobileprovision
+          cd ../..
 
       - name: Build & Archive
         script: |
           xcodebuild \
-            -workspace ios/App.xcworkspace \
+            -workspace ios/App/App.xcworkspace \
             -scheme App \
             -configuration Release \
             -archivePath $CM_BUILD_DIR/App.xcarchive \
+            archive \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_STYLE=Manual \
-            archive
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="rafal"
 
       - name: Export IPA
         script: |
@@ -61,6 +56,7 @@ workflows:
 
     artifacts:
       - $CM_BUILD_DIR/*.ipa
+      - /tmp/xcodebuild_logs/*.log
 
     publishing:
       email:
@@ -69,9 +65,3 @@ workflows:
         notify:
           success: true
           failure: true
-
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id:  $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: false
