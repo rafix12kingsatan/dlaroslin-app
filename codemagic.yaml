@@ -19,16 +19,22 @@ workflows:
         script: |
           npm ci
 
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios
+          pod install
+          cd ..
+
       - name: Build & Archive
         script: |
-          xcodebuild -project ios/App.xcodeproj \
+          xcodebuild -workspace ios/App.xcworkspace \
                      -scheme App \
                      -configuration Release \
                      -archivePath "$CM_BUILD_DIR/App.xcarchive" \
                      DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-                     CODE_SIGN_STYLE=Manual \
-                     PROVISIONING_PROFILE_SPECIFIER="$CM_PROVISIONING_PROFILE" \
                      archive
 
     artifacts:
       - build/App.xcarchive
+
+                   
