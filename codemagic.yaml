@@ -5,9 +5,10 @@ workflows:
 
     environment:
       vars:
-        DEVELOPMENT_TEAM: "XHY8V5C8YG"
+        DEVELOPMENT_TEAM: "XHY8V5C8YG"    # <-- Twój Team ID
+        CODE_SIGN_STYLE: "Automatic"      # <-- Wymuszenie stylu podpisu
       groups:
-        - code_signing
+        - code_signing                   # <-- Grupa, w której masz CM_CERTIFICATE, CM_PROV_PROFILE_BASE64, CM_KEYCHAIN_PASSWORD
 
     scripts:
       - name: Check node and npm versions
@@ -15,7 +16,7 @@ workflows:
           node --version
           npm --version
 
-      - name: Install JS dependencies
+      - name: Install dependencies
         script: |
           npm ci
 
@@ -24,21 +25,6 @@ workflows:
           cd ios
           pod install
           cd ..
-
-      - name: Setup code signing
-        script: |
-          # Tworzymy tymczasowy keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-
-          # Importujemy certyfikat
-          echo $CM_P12_BASE64 | base64 --decode > certificate.p12
-          security import certificate.p12 -k build.keychain -P "$CM_P12_PASSWORD" -T /usr/bin/codesign
-
-          # Importujemy provisioning profile
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo $CM_PROV_PROFILE_BASE64 | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/rafal.mobileprovision
 
       - name: Build & Archive
         script: |
